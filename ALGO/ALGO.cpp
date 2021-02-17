@@ -61,6 +61,7 @@ class CERBERUS: public CERBERUS_RISK
 
 		CERBERUS(int BROKERAGE, int LIVE_DEMO);
 		void set_info();
+		Json::Value str_to_json(std::string response);
 
 };
 
@@ -116,18 +117,8 @@ void CERBERUS::set_info()
 	}
 }
 
-int main()
+Json::Value CERBERUS::str_to_json(std::string response)
 {
-	int BROKERAGE = 0;
-	int LIVE_DEMO = 0;
-
-	CERBERUS CERBERUS_OBJ(BROKERAGE, LIVE_DEMO);
-
-	std::cout << CERBERUS_OBJ.ACCOUNT_ID << std::endl;
-	std::cout << CERBERUS_OBJ.API_TOKEN << std::endl;
-
-	std::string response = CERBERUS_OBJ.CERBERUS_RISK::init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
-
 	JSONCPP_STRING err;
 	Json::Value root;
 	Json::CharReaderBuilder builder;
@@ -140,6 +131,24 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	std::cout << response;
+	return root;
+}
+
+
+int main()
+{
+	int BROKERAGE = 0;
+	int LIVE_DEMO = 0;
+
+	CERBERUS CERBERUS_OBJ(BROKERAGE, LIVE_DEMO);
+
+	std::cout << CERBERUS_OBJ.ACCOUNT_ID << std::endl;
+	std::cout << CERBERUS_OBJ.API_TOKEN << std::endl;
+
+	std::string response = CERBERUS_OBJ.CERBERUS_RISK::init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
+	Json::Value root = CERBERUS_OBJ.str_to_json(response);
+
+	std::cout << root["account"] << std::endl;
+	//std::cout << response;
 
 }
