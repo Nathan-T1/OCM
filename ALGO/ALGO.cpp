@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <limits>
+#include "json/json.h"
 #include "API_UTILS.h"
 
 
@@ -40,6 +41,7 @@ CERBERUS_RISK::CERBERUS_RISK(int BROKERAGE_INPUT)
 {
 	
 	BROKERAGE = BROKERAGE_INPUT;
+
 	
 }
 
@@ -120,11 +122,23 @@ int main()
 	int LIVE_DEMO = 0;
 
 	CERBERUS CERBERUS_OBJ(BROKERAGE, LIVE_DEMO);
-	std::string response = CERBERUS_OBJ.CERBERUS_RISK::init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
 
 	std::cout << CERBERUS_OBJ.ACCOUNT_ID << std::endl;
 	std::cout << CERBERUS_OBJ.API_TOKEN << std::endl;
 
+	std::string response = CERBERUS_OBJ.CERBERUS_RISK::init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
+
+	JSONCPP_STRING err;
+	Json::Value root;
+	Json::CharReaderBuilder builder;
+	const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+	const auto rawJsonLength = static_cast<int>(response.length());
+
+	if (!reader->parse(response.c_str(), response.c_str() + rawJsonLength, &root,
+		&err)) {
+		std::cout << "error" << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	std::cout << response;
 
