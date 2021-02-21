@@ -1,3 +1,6 @@
 Insufficient authorization to perform request.
 1613870639: Insufficient authorization to perform request.
 1613870775: Insufficient authorization to perform request.
+1613880765: Missing 'sinceTransactionID' parameter
+1613882232: Missing 'sinceTransactionID' parameter
+1613882306: Missing 'sinceTransactionID' parameter
