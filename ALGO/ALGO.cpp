@@ -3,6 +3,8 @@
 
 #include "pch.h"
 #include <iostream>
+#include <ctime>
+#include <chrono>
 #include <sstream>
 #include <fstream>
 #include <limits>
@@ -14,6 +16,7 @@
 #include <curl\curl.h>
 
 const char *info_path = "C:/Users/bktor/Desktop/INFO.txt";
+const char error_file[] = "errors.txt";
 
 struct PATH_STRUCT
 {
@@ -24,34 +27,8 @@ struct PATH_STRUCT
 
 };
 
-class CERBERUS_RISK
-{
-	public:
-		static double marginRate;
-		int openTradeCount, pendingOrderCount;
-		int BROKERAGE;
-		double balance, pl;
 
-		CERBERUS_RISK(int BROKERAGE);
-		std::string init_risk(std::string ACCOUNT_PATH, std::string API_TOKEN);
-
-};
-
-CERBERUS_RISK::CERBERUS_RISK(int BROKERAGE_INPUT)
-{
-	
-	BROKERAGE = BROKERAGE_INPUT;
-
-	
-}
-
-std::string CERBERUS_RISK::init_risk(std::string ACCOUNT_PATH, std::string API_TOKEN)
-{
-	std::string response = DownloadJSON(ACCOUNT_PATH, API_TOKEN);
-	return response;
-};
-
-class CERBERUS: public CERBERUS_RISK
+class CERBERUS
 {
 	public:
 		
@@ -62,10 +39,12 @@ class CERBERUS: public CERBERUS_RISK
 		CERBERUS(int BROKERAGE, int LIVE_DEMO);
 		void set_info();
 		Json::Value str_to_json(std::string response);
+		Json::Value init_risk(std::string ACCOUNT_PATH, std::string API_TOKEN);
+		void msg_writer(const char filename[], std::string message);
 
 };
 
-CERBERUS::CERBERUS(int BROKERAGE_INPUT, int LIVE_DEMO_INPUT) : CERBERUS_RISK(BROKERAGE_INPUT)
+CERBERUS::CERBERUS(int BROKERAGE_INPUT, int LIVE_DEMO_INPUT)
 {
 	BROKERAGE = BROKERAGE_INPUT;
 	LIVE_DEMO = LIVE_DEMO_INPUT;
@@ -92,6 +71,50 @@ CERBERUS::CERBERUS(int BROKERAGE_INPUT, int LIVE_DEMO_INPUT) : CERBERUS_RISK(BRO
 		}
 	}
 }
+
+void CERBERUS::msg_writer(const char filename[], std::string message)
+{
+	std::fstream appendFileToWorkWith;
+	appendFileToWorkWith.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
+
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+	std::stringstream ss;
+	ss << now_time;
+	std::string ts = ss.str();
+
+
+	if (!appendFileToWorkWith)
+	{
+		appendFileToWorkWith.open(filename, std::fstream::in | std::fstream::out | std::fstream::trunc);
+		appendFileToWorkWith << ts + ": " + message << "\n";;
+		appendFileToWorkWith.close();
+
+	}
+	else
+	{    
+		appendFileToWorkWith << ts + ": " + message << "\n";
+		appendFileToWorkWith.close();
+
+	}
+
+
+}
+
+Json::Value CERBERUS::init_risk(std::string ACCOUNT_PATH, std::string API_TOKEN)
+{
+	std::string response = DownloadJSON(ACCOUNT_PATH, API_TOKEN);
+	Json::Value root = str_to_json(response);
+
+	if (root.isObject() && root.isMember("errorMessage"))
+	{
+		std::string errorMessage = root["errorMessage"].asString();
+		msg_writer(error_file, errorMessage);
+		std::exit(0);
+	}
+
+	return root;
+};
 
 void CERBERUS::set_info() 
 {
@@ -123,7 +146,7 @@ Json::Value CERBERUS::str_to_json(std::string response)
 	Json::Value root;
 	Json::CharReaderBuilder builder;
 	const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-	const auto rawJsonLength = static_cast<int>(response.length());
+	const int rawJsonLength = static_cast<int>(response.length());
 
 	if (!reader->parse(response.c_str(), response.c_str() + rawJsonLength, &root,
 		&err)) {
@@ -145,10 +168,9 @@ int main()
 	std::cout << CERBERUS_OBJ.ACCOUNT_ID << std::endl;
 	std::cout << CERBERUS_OBJ.API_TOKEN << std::endl;
 
-	std::string response = CERBERUS_OBJ.CERBERUS_RISK::init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
-	Json::Value root = CERBERUS_OBJ.str_to_json(response);
-
-	std::cout << root["account"] << std::endl;
+	Json::Value response = CERBERUS_OBJ.init_risk(CERBERUS_OBJ.PATH_STRUCT.ACCOUNT_PATH, CERBERUS_OBJ.API_TOKEN);
+	std::cout << response;
+	//std::cout << root << std::endl;
 	//std::cout << response;
 
 }
