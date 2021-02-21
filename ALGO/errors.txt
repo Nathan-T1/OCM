@@ -4,3 +4,6 @@ Insufficient authorization to perform request.
 1613880765: Missing 'sinceTransactionID' parameter
 1613882232: Missing 'sinceTransactionID' parameter
 1613882306: Missing 'sinceTransactionID' parameter
+1613928469: Error in get_changes(): The transaction ID range specified is invalid
+1613943652: Error in candles(): Unrecognized endpoint: /v3/instruemnts//EUR_USD/candles
+1613943689: Error in candles(): Unrecognized endpoint: /v3/instruemnts/EUR_USD/candles
